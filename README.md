@@ -1,11 +1,11 @@
 # SelectifyMe
-Custom swipe to select view.  Super simple UI.  Very easy to customize
+Custom swipe to select view. Super simple UI. Very easy to customize
 
 # SETUP
 Quick and easy
 
-* To jump right into it, copy and paste the whole ViewController file, add an outlet, or programatically create the view you want to turn into a custom selector view, and then just fill in the blanks and voilà a fully interactive selector view
+* Add or copy/paste the SwipefyMe.swift file into your project
+* On whichever ViewController you want to have the SwipeifiedView, conform the the SwipeifyMeDelegate, call swipefyMe(...) on the view you want, and set the properties of the delegate to the return value of the swipefyMe(...) call
+* In the touchesBegan, touchesMoved, and touchesEnded callback on the ViewController itself, call the appropriate haneldSlider... methods.
 
-
-
-(More Info comming soon)
+There you have it, a fully functional swipe to select view!

@@ -24,7 +24,7 @@ extension UIView {
   }
   
   /// Rounds the edges of the view and adds a 'selector' circle view like a swipe to confirm view of sorts
-  func swipeifyMe(selectorSize: SelectorSize, selectorColor: UIColor, backgroundColor: UIColor, view: @escaping ((circleSelectorView: UIView, startingPoint: CGPoint, endingPoint: CGPoint)) -> ()) {
+  func swipeifyMe(selectorSize: SelectorSize, selectorColor: UIColor, backgroundColor: UIColor, view: @escaping ((backgroundSelectorView: UIView, circleSelectorView: UIView, startingPoint: CGPoint, endingPoint: CGPoint)) -> ()) {
     self.backgroundColor = backgroundColor
     let selectorView = UIView()
     selectorView.backgroundColor = selectorColor
@@ -51,22 +51,48 @@ extension UIView {
     selectorView.clipsToBounds = true
     let startingPoint = CGPoint(x: self.frame.height / 2, y: self.center.y)
     let endingPoint = CGPoint(x: self.frame.width - (self.frame.height / 2), y: self.center.y)
-    view((selectorView, startingPoint, endingPoint))
+    let info = (self, selectorView, startingPoint, endingPoint)
+    view(info)
   }
   
 }
 
-protocol SwpieToSelectDelegate: class {
-  ///Set this property to the return of the swipeifyMe view callback
-  var startingPoint: CGPoint! {get set}
-  ///Set this property to the return of the swipeifyMe view callback
-  var endingPoint: CGPoint! {get set}
+protocol SwipifyMeCallbacksDelegate: class {
+  func successSwipeCallback()
+  func failureSwipeCallback()
+}
+
+class SwipifyMeViewController: UIViewController, SwipeToSelectDelegate {
+  
+  var info: (backgroundSelectorView: UIView, circleSelectorView: UIView, startingPoint: CGPoint, endingPoint: CGPoint)!
+  var minimumFullSwipeValue: CGFloat = 0.8
+  var tappedInSelectorView: Bool = false
+  
+  var swipeUpdatesDelegate: SwipifyMeCallbacksDelegate?
+  
+  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    handleSliderBegan(with: touches, backgroundView: info.backgroundSelectorView)
+  }
+  override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+    handleSliderMoved(with: touches, backgroundView: info.backgroundSelectorView)
+  }
+  override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    handleSliderEnded(notFullSwipe: {
+      self.swipeUpdatesDelegate?.failureSwipeCallback()
+    }) {
+      self.swipeUpdatesDelegate?.successSwipeCallback()
+    }
+  }
+  
+}
+
+protocol SwipeToSelectDelegate: class {
+  ///The info chunk!
+  var info: (backgroundSelectorView: UIView, circleSelectorView: UIView, startingPoint: CGPoint, endingPoint: CGPoint)! {get set}
   ///The percentage where it will complete the swipe and animate to the ending point
   var minimumFullSwipeValue: CGFloat {get set}
   ///Always set this to false
   var tappedInSelectorView: Bool {get set}
-  ///Set this property to the return of the swipeifyMe view callback
-  var circleSelectorView: UIView! {get set}
   
   ///User this method in the touchesBegan callback on the viewcontroller
   func handleSliderBegan(with touches: Set<UITouch>, backgroundView: UIView)
@@ -82,7 +108,7 @@ protocol SwpieToSelectDelegate: class {
   func isWithinBounds(touchPoint: CGPoint) -> Bool
 }
 
-extension SwpieToSelectDelegate {
+extension SwipeToSelectDelegate {
   
   func handleSliderBegan(with touches: Set<UITouch>, backgroundView: UIView) {
     if let touchPoint = touches.first?.location(in: backgroundView) {
@@ -97,14 +123,14 @@ extension SwpieToSelectDelegate {
   func handleSliderMoved(with touches: Set<UITouch>, backgroundView: UIView) {
     if let touchPoint = touches.first?.location(in: backgroundView) {
       if tappedInSelectorView && isWithinBounds(touchPoint: touchPoint) {
-        circleSelectorView.center.x = touchPoint.x
+        info.circleSelectorView.center.x = touchPoint.x
       }
     }
   }
   
   func handleSliderEnded(notFullSwipe: @escaping () -> (), fullSwipe: @escaping () -> ()) {
-    let circleEndingPoint = circleSelectorView.center
-    if circleEndingPoint.x < self.endingPoint.x * minimumFullSwipeValue {
+    let circleEndingPoint = self.info.circleSelectorView.center
+    if circleEndingPoint.x < self.info.endingPoint.x * minimumFullSwipeValue {
       animateToStart() {
         notFullSwipe()
       }
@@ -118,21 +144,21 @@ extension SwpieToSelectDelegate {
   
   func animateToStart(completion: @escaping () -> ()) {
     UIView.animate(withDuration: 0.2, animations: {
-      self.circleSelectorView.center.x = self.startingPoint.x
+      self.info.circleSelectorView.center.x = self.info.startingPoint.x
     }) { (_) in
       completion()
     }
   }
   func animateToEnding(completion: @escaping () -> ()) {
     UIView.animate(withDuration: 0.2, animations: {
-      self.circleSelectorView.center.x = self.endingPoint.x
+      self.info.circleSelectorView.center.x = self.info.endingPoint.x
     }) { (_) in
       completion()
     }
   }
   
   func isWithinBounds(touchPoint: CGPoint) -> Bool {
-    if touchPoint.x < startingPoint.x || touchPoint.x > self.endingPoint.x {
+    if touchPoint.x < info.startingPoint.x || touchPoint.x > info.endingPoint.x {
       return false
     }
     return true

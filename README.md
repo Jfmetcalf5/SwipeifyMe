@@ -14,7 +14,7 @@ That is all you need to do, everything else is taken care of for you.
 
 # Properties
 * `self.info: (backgroundSelectorView: UIView, circleSelectorView: UIView, startingPoint: CGPoint, endingPoint: CGPoint)!`
-    - Everything the Delegate needs to set up the view properly
+    - Everything the Delegate needs to set up the view properly (you can customize any of these properties by simply doing `self.info.{property to customize}`)
 * `self.minimumFullSwipeValue: CGFloat`
     - This value is between 0 and 1, it's the value where if the view is greater than this value it will slide to completed/success state
 * `self.tappedInSelectorView: Bool`

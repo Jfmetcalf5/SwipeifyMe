@@ -18,4 +18,4 @@ That is all you need to do, everything else is taken care of for you.
 * `self.minimumFullSwipeValue: CGFloat`
     - This value is between 0 and 1, it's the value where if the view is greater than this value it will slide to completed/success state
 * `self.tappedInSelectorView: Bool`
-    - Always set this to true.  If not the user can tap anywhere in the backgroundView of your selector and the view will jump to that point, not making a very friendly user onterface
+    - Always set this to true.  If not the user can tap anywhere in the backgroundView of your selector and the view will jump to that point, not making a very friendly user interface
